@@ -13,26 +13,28 @@ from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 # double and triple exponential smoothing
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
+# adjusts labels in plot to reduce overlappting
 from adjustText import adjust_text
 
 # format: month,year,number
 df = pd.read_csv('inputdata.csv')
 
+# create index column 
 df['date'] = pd.to_datetime(df[['year', 'month']].assign(DAY=1))
-# df['month_year'] = df['date'].dt.to_period('M')
 
+# determine which years of data is present
 years = set()
 for val in df['year']:
     if val not in years:
         years.add(val)
 
+# determine last record
 last_record = df.tail(1)
 last_month, last_year = last_record.iloc[0]['month'], last_record.iloc[0]['year']
 
 df = df.set_index(['date'])
 
 print(df.head())
-
 
 # plot all years data
 fig, ax = plt.subplots(1, figsize=[15,5])
@@ -48,7 +50,6 @@ for i, y in enumerate(totals):
     texts.append(plt.text(x, y, txt))
 
 adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0.5))
-
 
 # plot data by year
 df_list = [d for _, d in df.groupby(['year'])]

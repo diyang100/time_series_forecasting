@@ -13,12 +13,12 @@ from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 # double and triple exponential smoothing
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
-
+from adjustText import adjust_text
 
 # format: month,year,number
 df = pd.read_csv('inputdata.csv')
 
-# df['date'] = pd.to_datetime(df[['year', 'month']].assign(DAY=1))
+df['date'] = pd.to_datetime(df[['year', 'month']].assign(DAY=1))
 # df['month_year'] = df['date'].dt.to_period('M')
 
 years = set()
@@ -29,26 +29,33 @@ for val in df['year']:
 last_record = df.tail(1)
 last_month, last_year = last_record.iloc[0]['month'], last_record.iloc[0]['year']
 
-df = df.set_index(['year', 'month'])
+df = df.set_index(['date'])
 
 print(df.head())
 
-ax = df[['total']].plot(title='Total income per month (all years)', marker='o', color='b')
-for idx, row in df.iterrows():
-    ax.annotate(idx, (idx, row['total']) )
 
-# plt.figure(1)
-# plt.plot(ridge_grad_desc_10[2], ridge_grad_desc_10[3], label='Training Loss per Iteration')
-# plt.xlabel('iterations')
-# plt.ylabel('training loss')
-# plt.title('Training Loss per Iteration for Gradient Descent with Lambda = 10')
-# plt.legend()
-# plt.show()
+# plot all years data
+fig, ax = plt.subplots(1, figsize=[15,5])
+df[['total']].plot(title='Total income per month (all years)', marker='o', color='b', ax=ax)
+ax.set_yticklabels([f"{t:0.0f}" for t in ax.get_yticks()])
 
+totals = df.loc[:,'total']
+dates = df.index
+texts = []
+for i, y in enumerate(totals):
+    x = dates[i]
+    txt = str(int(y)//1000) + 'K'
+    texts.append(plt.text(x, y, txt))
+
+adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0.5))
+
+
+# plot data by year
 df_list = [d for _, d in df.groupby(['year'])]
-for df in df_list:
-    ax = df[['total']].plot(title='Total income per month', marker='o', color='b')
-    ax.set_xticks(np.arange(len(df.index)))
-    ax.set_xticklabels(df.index)
+for i, df in enumerate(df_list):
+    fig, ax = plt.subplots(1, figsize=[15,5])
+    df[['total']].plot(title='Total income per month', marker='o', color='b', ax=ax)
+    ax.set_yticklabels([f"{t:0.0f}" for t in ax.get_yticks()])
+
 
 plt.show()
